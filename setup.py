@@ -87,7 +87,7 @@ def include_documentation(local_dir, install_dir):
 
 
 if __name__ == '__main__':
-    include_documentation('doc/_build/html', 'help/orange3-databricks')
+    include_documentation('docs/_build/html', 'help/orange3-databricks')
     setup(
         name=NAME,
         version=VERSION,
