@@ -36,4 +36,4 @@ or
 
 The new widget appears in the toolbox bar under the section Databricks.
 
-![screenshot](https://github.com/the-mad-statter/orange3-databricks-addon/blob/master/screenshot.png)
+![screenshot](https://github.com/the-mad-statter/orange3-databricks-addon/blob/main/screenshot.png)

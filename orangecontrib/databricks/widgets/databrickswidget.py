@@ -1,13 +1,30 @@
+import concurrent.futures
+import logging
+import Orange.data.pandas_compat as pc
+import random
+import sqlalchemy as db
+
+from AnyQt.QtCore import QThread, pyqtSlot
+from AnyQt.QtWidgets import QLabel, QLineEdit, QTextEdit
+from functools import partial
 from Orange.data import Table
 from Orange.widgets import gui
 from Orange.widgets.settings import Setting
 from Orange.widgets.widget import OWWidget, Output
+from orangewidget.utils.concurrent import FutureWatcher, methodinvoke
 
-import sqlalchemy as db
-from Orange.data.pandas_compat import table_from_frame
-import Orange.data.pandas_compat as pc
 
-from AnyQt.QtWidgets import QLabel, QLineEdit, QTextEdit
+
+
+class Task:
+    future = ...
+    watcher = ...
+    cancelled = False
+
+    def cancel(self):
+        self.cancelled = True
+        self.future.cancel()
+        concurrent.futures.wait([self.future])
 
 
 
@@ -40,6 +57,9 @@ class DatabricksWidget(OWWidget):
     def __init__(self):
         super().__init__()
         
+        self._task = None
+        self._executor = concurrent.futures.ThreadPoolExecutor()
+        
         self.server_hostname_box = gui.lineEdit(
             self.controlArea, self, "server_hostname", label="Host")
         
@@ -69,20 +89,77 @@ class DatabricksWidget(OWWidget):
     def button_onclick(self):
         self.save_query()
         
-        self.error()
-        self.pb = gui.ProgressBar(self, 100)
-        self.pb.advance(33)
-        self.repaint()
+        if self._task is not None:
+            self.cancel()
+        assert self._task is None
         
-        try: 
-            self.execute_query()
-        except BaseException as e:
-            self.error(str(e))
-        finally:
-            self.pb.finish()
-    
-    
-    
+        self._task = task = Task()
+        
+        set_progress = methodinvoke(self, "setProgressValue", (float,))
+        
+        def callback(finished):
+            if task.cancelled:
+                raise KeyboardInterrupt()
+            set_progress(finished * 100)
+            
+        execute_query = partial(self.execute_query, callback=callback)
+        
+        self.error()
+        self.progressBarInit()
+        task.future = self._executor.submit(execute_query)
+        task.watcher = FutureWatcher(task.future)
+        task.watcher.done.connect(self._task_finished)
+        
+        
+        
+        
+    @pyqtSlot(float)
+    def setProgressValue(self, value):
+        assert self.thread() is QThread.currentThread()
+        self.progressBarSet(value)
+        
+        
+        
+        
+    @pyqtSlot(concurrent.futures.Future)
+    def _task_finished(self, f):
+        assert self.thread() is QThread.currentThread()
+        assert self._task is not None
+        assert self._task.future is f
+        assert f.done()
+
+        self._task = None
+        self.progressBarFinished()
+
+        try:
+            data = pc.table_from_frame(f.result())
+            self.Outputs.data.send(data)
+        except Exception as ex:
+            log = logging.getLogger()
+            log.exception(__name__, exc_info=True)
+            self.error("Exception occurred during evaluation: {!r}"
+                       .format(ex))
+            
+            
+            
+            
+    def cancel(self):
+        if self._task is not None:
+            self._task.cancel()
+            assert self._task.future.done()
+            self._task.watcher.done.disconnect(self._task_finished)
+            self._task = None
+            self.progressBarFinished()
+
+
+
+
+    def onDeleteWidget(self):
+        self.cancel()
+        super().onDeleteWidget()
+            
+            
+            
     
     def save_query(self):
         self.query = self.query_box.toPlainText()
@@ -90,7 +167,10 @@ class DatabricksWidget(OWWidget):
     
     
     
-    def execute_query(self):        
+    def execute_query(self, callback=None):
+        if callback is not None:
+            callback(random.uniform(0, 1))
+        
         server_hostname = self.server_hostname_box.text()
         http_path       = self.http_path_box.text()
         access_token    = self.access_token_box.text()
@@ -106,7 +186,8 @@ class DatabricksWidget(OWWidget):
         con = engine.connect()
         result = pc.pd.read_sql(query, con)
         engine.dispose()
-        self.Outputs.data.send(table_from_frame(result))
+
+        return result
         
      
         
