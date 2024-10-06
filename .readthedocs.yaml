@@ -11,3 +11,7 @@ sphinx:
 formats:
     - pdf
     - epub
+    
+python:
+    install:
+    - requirements: docs/requirements.txt
