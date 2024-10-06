@@ -1,0 +1,10 @@
+Orange3 Databricks Add-In
+=========================
+
+Orange3 add-in to read data from a Databricks instance.
+See [documentation](http://orange3-imageanalytics.readthedocs.org/).
+
+Features
+--------
+#### List of key features
+* Read data from a Databricks instance
