@@ -1,0 +1,27 @@
+[OPTIONS]
+Binary TOC=No
+Binary Index=No
+Compiled file=Orange3DatabricksAdd-ondoc.chm
+Contents file=Orange3DatabricksAdd-ondoc.hhc
+Default Window=Orange3DatabricksAdd-ondoc
+Default topic=index.html
+Display compile progress=No
+Full text search stop list file=Orange3DatabricksAdd-ondoc.stp
+Full-text search=Yes
+Index file=Orange3DatabricksAdd-ondoc.hhk
+Language=0x409
+Title=Orange3 Databricks Add-on 0.1 documentation
+
+[WINDOWS]
+Orange3DatabricksAdd-ondoc="Orange3 Databricks Add-on 0.1 documentation","Orange3DatabricksAdd-ondoc.hhc","Orange3DatabricksAdd-ondoc.hhk","index.html","index.html",,,,,0x63520,220,0x10384e,[0,0,1024,768],,,,,,,0
+
+[FILES]
+genindex.html
+index.html
+_static\basic.css
+_static\file.png
+_static\minus.png
+_static\nature.css
+_static\plus.png
+_static\pygments.css
+widgets\databrickswidget.html

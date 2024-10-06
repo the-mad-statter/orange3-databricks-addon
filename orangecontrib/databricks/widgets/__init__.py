@@ -25,5 +25,6 @@ WIDGET_HELP_PATH = (
     # Url should point to a page with a section Widgets. This section should
     # includes links to documentation pages of each widget. Matching is
     # performed by comparing link caption to widget name.
-    ("http://orange3-example-addon.readthedocs.io/en/latest/", "")
+    #("http://orange3-example-addon.readthedocs.io/en/latest/", "")
+    ("https://orange3-databricks-addon.readthedocs.io/en/latest/", "")
 )
